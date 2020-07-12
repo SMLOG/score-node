@@ -1,18 +1,30 @@
-import JSONP from "node-jsonp";
-import { tech } from "./TechMan";
-async function getKline(code) {
-  let url = `http://29.push2his.eastmoney.com/api/qt/stock/kline/get?secid=${code}&ut=fa5fd1943c7b386f172d6893dbfba10b&fields1=f1%2Cf2%2Cf3%2Cf4%2Cf5&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58&klt=101&fqt=0&end=20500101&lmt=120&_=1592709205309`;
-  return await new Promise((resolve, reject) => {
-    JSONP(url, {}, "cb", (json) => {
-      return resolve(json);
-    });
-  });
-}
+import { tech, getKlineData } from "./TechMan";
+import { kUtil } from "./util";
 
 (async () => {
-  let datas = await getKline("0.002565");
+  let datas = await getKlineData("0.002565");
   console.log(datas);
+
   let techDatas = tech(datas.data.klines);
+  /**{
+        open: p.open,
+        high: p.high,
+        low: p.low,
+        close: p.close,
+        price: p.close,
+        volume: p.volume,
+        totalVolume: p.volume,
+        date: util.dd(p.date),
+      } */
+  let [weekDatas, monthDatas, yearDatas] = kUtil.mw(
+    techDatas,
+    techDatas[techDatas.length - 1],
+    null,
+    null,
+    0 / 0
+  );
+  let weekTechs = tech(weekDatas);
+  console.log(weekTechs);
   console.log(techDatas);
   console.log("done");
 })();

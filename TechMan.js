@@ -1,5 +1,54 @@
+import JSONP from "node-jsonp";
+
+const KTYPE = {
+  5: "M5",
+  15: "M15",
+  30: "M30",
+  60: "M60",
+  101: "D",
+  102: "W",
+  103: "M",
+  D: 101,
+  M: 103,
+  M5: 5,
+  M15: 15,
+  M30: 30,
+  M60: 60,
+  W: 102,
+};
+const CFG = {
+  0: "Bfq",
+  1: "Qfq",
+  2: "Hfq",
+  Bfq: 0,
+  Hfq: 2,
+};
+export async function getKlineData(code) {
+  let url = `http://${Math.floor(
+    99 * Math.random() + 1
+  )}.push2his.eastmoney.com/api/qt/stock/kline/get`;
+  //?secid=${code}&ut=fa5fd1943c7b386f172d6893dbfba10b&fields1=f1%2Cf2%2Cf3%2Cf4%2Cf5&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59&klt=101&fqt=0&end=20500101&lmt=120&_=1592709205309
+  let data = {
+    secid: code,
+    ut: "fa5fd1943c7b386f172d6893dbfba10b",
+    fields1: "f1,f2,f3,f4,f5",
+    fields2: "f51,f52,f53,f54,f55,f56,f57,f58,f59,f60",
+    klt: KTYPE.D,
+    fqt: CFG.Bfq,
+    beg: 0,
+    end: 20500101,
+    smplmt: 460,
+    lmt: 1000000,
+    _: +new Date(),
+  };
+  return await new Promise((resolve, reject) => {
+    JSONP(url, data, "cb", (json) => {
+      return resolve(json);
+    });
+  });
+}
 export function tech(klines) {
-  function e(techName, klines) {
+  /* function e(techName, klines) {
     for (
       var tDatas = cacTechDatas(klines), n = [], a = tDatas.length, s = 0;
       s < a;
@@ -131,20 +180,27 @@ export function tech(klines) {
       }
     }
     return n;
-  }
-  function cacTechDatas(klines) {
-    null == klines || klines.Count;
-    for (var i = [], e = klines.length, o = 0; o < e; o++) {
-      var s = klines[o].split(","),
+  }*/
+  function cacTechDatas(kdataStr) {
+    for (var i = [], e = kdataStr.length, o = 0; o < e; o++) {
+      var s = kdataStr[o].split(","),
         r = a();
-      (r.time = s[0]),
+      ((r.date = new Date(s[0])), (r.time = s[0])),
         (r.open = parseFloat(s[1])),
         (r.close = parseFloat(s[2])),
         (r.high = parseFloat(s[3])),
         (r.low = parseFloat(s[4])),
         (r.volume = Number(s[5])),
+        (r.amount = Number(s[6])),
+        (r.amplitudeP = Number(s[7])),
+        (r.increaseP = Number(s[8])),
+        (r.increase = Number(s[9])),
         i.push(r);
     }
+    return cacTechObjectDatas(i);
+  }
+  function cacTechObjectDatas(i) {
+    var e = i.length;
     for (
       var l,
         h,
@@ -593,5 +649,7 @@ export function tech(klines) {
     whatisyou = 0.02,
     h = 0,
     d = 0;
-  return cacTechDatas(klines);
+  if (typeof klines[0] === "object") {
+    return cacTechObjectDatas(klines);
+  } else return cacTechDatas(klines);
 }
